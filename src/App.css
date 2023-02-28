@@ -1,0 +1,93 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+button {
+  height: 23px;
+  border: none;
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+
+.game {
+  width: 400px;
+  margin: 0 auto;
+  background-color: #C0C0C0;
+  border-width: 4px;
+  border-style: outset;
+  border-color: #F5F5F5;
+  padding: 10px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  border-width: 4px;
+  border-style: inset;
+  border-color: #F5F5F5;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.header__count-mine,
+.header__timer {
+  display: flex;
+  height: 40px;
+  background-color: #000;
+}
+
+.header button {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+
+.header__smile {
+  background-image: url(../public/minesweeper-sprites_9TPZzv3.png);
+  overflow: hidden;
+  background-size: 240px;
+  background-position: -3px -44px;
+  background-repeat: no-repeat;
+}
+
+.header__smile:active {
+  background-position: -96px -44px;
+  border: none;
+}
+
+.header__count-mine span, .header__timer span{
+  display: block;
+  width: 25px;
+  height: 100%;
+  background-image: url(../public/minesweeper-sprites_9TPZzv3.png);
+  overflow: hidden;
+  background-size: 250px;
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+}
+
+.game-body {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  border-width: 4px;
+  border-style: inset;
+  border-color: #F5F5F5;
+}
+
+.game-btn {
+  border-width: 2px;
+  border-style: outset;
+  border-color: #ededed;
+  background-color: #BDBDBD;
+  background-size: 210px;
+}
+
+.game-btn:disabled {
+  border: 1px solid #d4d4d4;
+}
