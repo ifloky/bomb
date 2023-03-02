@@ -1,9 +1,9 @@
 import './App.css';
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
 
-  const BOMBS_COUNT = 106;
+  const BOMBS_COUNT = 56;
   const WIDTH = 16;
   const HEIGHT = 16;
 
@@ -14,73 +14,86 @@ function App() {
   const [explosion, setExplosion] = useState(false)
   const [timer, setTimer] = useState({ secondOne: -225, secondTwo: -225, secondThree: -225 });
   const [count, setCount] = useState({ countOne: -225, countTwo: -225, countThree: -225 });
-  const [countM, setCountM] = useState({ 0: '-28px 48px', 1: '-2px 22px;', 2: '-28px 22px;', 3: '-53px 22px;', 4: '-79px 22px;', 5: '-105px 22px;', 6: '-130px 22px;', 7: '-156px 22px;', 8: '-182px 22px;' });
-  const [countMine, setCountMine] = useState(BOMBS_COUNT);
+  const [countMine, setCountMine] = useState(0);
   const [click, setClick] = useState(false);
-  const [allBombs, setAllBombs] = useState({})
+  const [allBombs, setAllBombs] = useState({});
+  const [countMineRem, setCountMineRem] = useState(BOMBS_COUNT);
+  const [selectedButtonId, setSelectedButtonId] = useState(null);
+  const [openCells, setOpenCells] = useState([]);
+  const [buttonStates, setButtonStates] = useState({});
+  const backPos = {
+    0: '-28px 48px',
+    1: '-2px 23px',
+    2: '-28px 23px',
+    3: '-53px 23px',
+    4: '-79px 23px',
+    5: '-105px 23px',
+    6: '-130px 23px',
+    7: '-156px 23px',
+    8: '-182px 23px',
+    9: '80px 48px',
+    10: '-2px 49px'
+  };
 
-  //const cells = [...gameBody.current.children]
-
-  useEffect(() => {
-
-  }, [start])
 
   function startGame() {
-    if (!start) {
-      setStart(true);
-      creteBomb(cellsCount)
-    } else {
-      timerStop();
-    }
+    setStart(true);
+    setExplosion(false);
+    setButtonStates({});
+    setOpenCells([])
+    setAllBombs([...Array(cellsCount).keys()]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, BOMBS_COUNT))
   }
 
-  function creteBomb(cellsCount) {
-    const bombs = [...Array(cellsCount).keys()]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, BOMBS_COUNT);
-  }
+  function winwin() { }
 
   function clickField(e) {
     if (start) {
       if (e.target.tagName !== 'BUTTON') {
         return;
       }
-
       const index = e.target.id;
       const column = index % WIDTH;
       const row = Math.floor(index / WIDTH);
-      open(row, column, e, countM)
-
+      open(row, column, e, countMine, countMineRem)
     }
   }
 
-  function open(row, column, e, countM) {
-    const index = row * WIDTH + column;
-    let num = getCountM(row, column)
-    console.log('num ' + num);
+  function open(row, column, e, countMine, countMineRem, el) {
     if (!isBomb(row, column)) {
-      //e.target.style.borderWidth = '1px';
-      //e.target.style.borderColor = '#d4d4d4';
-      //e.target.style.borderStyle = 'solid';
+      const buttonId = e.target.id;
+      setSelectedButtonId(buttonId);
+      countMine = getCountMine(row, column, countMine); //сколько мин рядом
+      setCountMineRem(--countMineRem); //сколько мин осталось  
+      setOpenCells([...openCells, e.target.id]);
+      const newButtonStates = {
+        ...buttonStates,
+        [e.target.id]: backPos[countMine],
+      };
+      setButtonStates(newButtonStates);
       e.target.disabled = true
-      e.target.style.backgroundPosition = countM[num];
-      console.log(e.target.style.backgroundPosition = countM[num]);
+      if (countMineRem === 0) {
+        winwin()
+      }
     } else {
       setExplosion(true);
-      setStart(false);
-      timerStop()
+      timerStop();
     }
-
   }
 
-
-  function isBomb(row, column, bombs) {
+  function isBomb(row, column) {
     const index = row * WIDTH + column;
-    setAllBombs(bombs.includes(index));
-    return bombs.includes(index);
+    return allBombs.includes(index);
   }
 
+  function isBombInd(ind) {
+    return allBombs.includes(ind);
+  }
 
+  function isOpenCells(ind) {
+    return openCells.includes(ind.toString());
+  }
 
   function timerStart() {
     setTimer({ secondOne: 0, secondTwo: -225, secondThree: -225 })
@@ -93,30 +106,33 @@ function App() {
         }
       })
     }, 100);
-
   };
 
   function timerStop() {
     setTimer({ secondOne: -225, secondTwo: -225, secondThree: -225 });
   }
 
-
   function setSmile() {
     setClick(!click)
   }
 
-  function getCountM(row, column) {
+  function getCountMine(row, column, countMine, el) {
     let count = 0
-    for (let x = -1; x < 1; x++) {
-      for (let y = -1; y < 1; y++) {
+
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
         if (isBomb(row + y, column + x)) {
-          count++
+          const r = row + x;
+          const c = column + y;
+          if (r >= 0 && r < WIDTH - 1 && c >= 0 && c < HEIGHT - 1) {
+            count++
+          }
         }
       }
     }
-    return count
+    setCountMine(countMine = count)
+    return countMine
   }
-
 
   return (
     <div className="App">
@@ -142,9 +158,9 @@ function App() {
             style={{
               backgroundPosition:
                 click ? '-96px -44px' :
-                  start ? '-50px -44px' :
-                    explosion ? '-189px -44px' :
-                      countMine == 0 ? '-143px -44px' : '-50px - 44px'
+                  explosion ? '-189px -44px' :
+                    start ? '-50px -44px' :
+                      countMine == -1 ? '-143px -44px' : '-50px - 44px'
             }}>
           </button>
           <div className="header__timer">
@@ -168,12 +184,18 @@ function App() {
               className="game-btn"
               style={{
                 backgroundImage: 'url(minesweeper-sprites_9TPZzv3.png)',
-                backgroundPosition: !isBomb ? '289px 48px' : explosion ? '54px 48px' : '181px 48px',
-                backgroundSize: '210px',
+                //backgroundPosition: !start ? backPos[0] : !explosion ? backPos[10] : selectedButtonId === ind ? backPos[0] : !isBombInd(ind) ? backPos[0] : backPos[9]
+                backgroundPosition:
+                  !start ? backPos[0] :
+                    !explosion ? (!isBombInd(ind) ? backPos[0] : backPos[9]) :
+                      isOpenCells(ind) && !isBombInd(ind) ? buttonStates[ind] || backPos[countMine] :
+                        (explosion && isBombInd(ind)) ? backPos[9] :
+                          (explosion && isOpenCells(ind)) ? buttonStates[ind] :
+                            backPos[10]
               }}
               key={ind}
               id={ind}
-              disabled={start ? false : "disabled"}
+              disabled={explosion ? true : false}
               onMouseDown={setSmile}
               onMouseUp={setSmile}>
             </button>
