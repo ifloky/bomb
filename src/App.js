@@ -8,7 +8,9 @@ function App() {
   const HEIGHT = 16;
 
   const cellsCount = WIDTH * HEIGHT;
-  const arrItem = [...Array(cellsCount)];
+  const startArr = [...Array(cellsCount).fill('-2px 49px')]
+
+  const [arrItem, changeArrItem] = useState(startArr);
 
   const [start, setStart] = useState(false)
   const [explosion, setExplosion] = useState(false)
@@ -18,7 +20,6 @@ function App() {
   const [click, setClick] = useState(false);
   const [allBombs, setAllBombs] = useState({});
   const [countMineRem, setCountMineRem] = useState(BOMBS_COUNT);
-  const [selectedButtonId, setSelectedButtonId] = useState(null);
   const [openCells, setOpenCells] = useState([]);
   const [buttonStates, setButtonStates] = useState({});
   const backPos = {
@@ -56,30 +57,65 @@ function App() {
       const index = e.target.id;
       const column = index % WIDTH;
       const row = Math.floor(index / WIDTH);
-      open(row, column, e, countMine, countMineRem)
+      open(row, column, e, countMine, countMineRem);
+      //checkNeighbor(row, column, e)
     }
   }
 
-  function open(row, column, e, countMine, countMineRem, el) {
+  function open(row, column, e, countMine, countMineRem) {
     if (!isBomb(row, column)) {
-      const buttonId = e.target.id;
-      setSelectedButtonId(buttonId);
       countMine = getCountMine(row, column, countMine); //сколько мин рядом
-      setCountMineRem(--countMineRem); //сколько мин осталось  
+      //setCountMineRem(countMineRem - 1); //сколько мин осталось  
       setOpenCells([...openCells, e.target.id]);
       const newButtonStates = {
         ...buttonStates,
         [e.target.id]: backPos[countMine],
       };
+
       setButtonStates(newButtonStates);
-      e.target.disabled = true
+      //changeArrItem(arrItem[e.target.id] = newButtonStates[e.target.id])
+
+      e.target.disabled = true;
+
       if (countMineRem === 0) {
         winwin()
       }
+
     } else {
+
+      changeArrItem(arrItem.map((val, ind) => {
+        if (allBombs.includes(ind)) {
+          return arrItem[ind] = '80px 48px'
+        } else {
+          if (!isOpenCells) {
+            return arrItem[ind] = '-2px 49px';
+          }
+        }
+      }));
+
       setExplosion(true);
       timerStop();
     }
+  }
+
+  console.log('init');
+
+  function getCountMine(row, column, countMine) {
+    let count = 0
+
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        const r = row + x;
+        const c = column + y;
+        if (isBomb(r, c)) {
+          if (r >= 0 && r < WIDTH - 1 && c >= 0 && c < HEIGHT - 1) {
+            count++
+          }
+        }
+      }
+    }
+    setCountMine(countMine = count)
+    return countMine
   }
 
   function isBomb(row, column) {
@@ -94,6 +130,21 @@ function App() {
   function isOpenCells(ind) {
     return openCells.includes(ind.toString());
   }
+
+
+  //function checkNeighbor(row, column) {
+  //  for (let x = -1; x <= 1; x++) {
+  //    for (let y = -1; y <= 1; y++) {
+  //      const r = row + x;
+  //      const c = column + y;
+  //      if (!(x === 0 && y === 0) && r >= 0 && r < WIDTH && c >= 0 && c < HEIGHT) {
+  //        if (!isBomb(r, c) && !isOpenCells(r, c)) {
+  //          open(r, c);
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 
   function timerStart() {
     setTimer({ secondOne: 0, secondTwo: -225, secondThree: -225 })
@@ -114,24 +165,6 @@ function App() {
 
   function setSmile() {
     setClick(!click)
-  }
-
-  function getCountMine(row, column, countMine, el) {
-    let count = 0
-
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        if (isBomb(row + y, column + x)) {
-          const r = row + x;
-          const c = column + y;
-          if (r >= 0 && r < WIDTH - 1 && c >= 0 && c < HEIGHT - 1) {
-            count++
-          }
-        }
-      }
-    }
-    setCountMine(countMine = count)
-    return countMine
   }
 
   return (
@@ -179,23 +212,22 @@ function App() {
           </div>
         </header>
         <div className="game-body" onClick={clickField}>
-          {arrItem.map((el, ind) =>
+          {startArr.map((el, ind) =>
             <button
               className="game-btn"
               style={{
                 backgroundImage: 'url(minesweeper-sprites_9TPZzv3.png)',
                 //backgroundPosition: !start ? backPos[0] : !explosion ? backPos[10] : selectedButtonId === ind ? backPos[0] : !isBombInd(ind) ? backPos[0] : backPos[9]
-                backgroundPosition:
-                  !start ? backPos[0] :
-                    !explosion ? (!isBombInd(ind) ? backPos[0] : backPos[9]) :
-                      isOpenCells(ind) && !isBombInd(ind) ? buttonStates[ind] || backPos[countMine] :
-                        (explosion && isBombInd(ind)) ? backPos[9] :
-                          (explosion && isOpenCells(ind)) ? buttonStates[ind] :
-                            backPos[10]
+                backgroundPosition: arrItem[ind]
+                //    !start ? backPos[0] :
+                //explosion ? (!isBombInd(ind) ? backPos[0] : backPos[9]) :
+                //  isOpenCells(ind) && !isBombInd(ind) ? buttonStates[ind] || backPos[countMine] :
+                //    (explosion && isBombInd(ind)) ? backPos[9] :
+                //      (explosion && isOpenCells(ind)) ? buttonStates[ind] :
+                //        backPos[10]
               }}
               key={ind}
               id={ind}
-              disabled={explosion ? true : false}
               onMouseDown={setSmile}
               onMouseUp={setSmile}>
             </button>
