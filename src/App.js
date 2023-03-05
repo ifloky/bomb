@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 
 function App() {
 
-  const BOMBS_COUNT = 56;
+  const BOMBS_COUNT = 40;
   const WIDTH = 16;
   const HEIGHT = 16;
 
   const cellsCount = WIDTH * HEIGHT;
-  const startArr = [...Array(cellsCount).fill('-2px 49px')]
+  const startArr = [...Array(cellsCount).fill('0px 50px')]
 
   const [arrItem, changeArrItem] = useState(startArr);
 
@@ -41,10 +41,13 @@ function App() {
     setStart(true);
     setExplosion(false);
     setButtonStates({});
-    setOpenCells([])
+    setOpenCells([]);
     setAllBombs([...Array(cellsCount).keys()]
       .sort(() => Math.random() - 0.5)
       .slice(0, BOMBS_COUNT))
+    arrItem.forEach((el) => {
+      el = '0px 50px'
+    })
   }
 
   function winwin() { }
@@ -64,41 +67,38 @@ function App() {
 
   function open(row, column, e, countMine, countMineRem) {
     if (!isBomb(row, column)) {
-      countMine = getCountMine(row, column, countMine); //сколько мин рядом
-      //setCountMineRem(countMineRem - 1); //сколько мин осталось  
-      setOpenCells([...openCells, e.target.id]);
-      const newButtonStates = {
-        ...buttonStates,
-        [e.target.id]: backPos[countMine],
-      };
 
-      setButtonStates(newButtonStates);
-      //changeArrItem(arrItem[e.target.id] = newButtonStates[e.target.id])
+      countMine = getCountMine(row, column, countMine);
+
+      setOpenCells([...openCells, e.target.id]);
+      
+      arrItem[e.target.id] = backPos[countMine]
 
       e.target.disabled = true;
+
+
+      if (countMine === 0) {
+        checkNeighbor(row, column, e);
+      }
 
       if (countMineRem === 0) {
         winwin()
       }
 
     } else {
-
-      changeArrItem(arrItem.map((val, ind) => {
+      arrItem.map((val, ind) => {
         if (allBombs.includes(ind)) {
           return arrItem[ind] = '80px 48px'
         } else {
-          if (!isOpenCells) {
-            return arrItem[ind] = '-2px 49px';
-          }
+          return arrItem[ind];
         }
-      }));
-
+      });
+      arrItem[e.target.id] = '54px 48px';
+      setStart(false)
       setExplosion(true);
       timerStop();
     }
   }
-
-  console.log('init');
 
   function getCountMine(row, column, countMine) {
     let count = 0
@@ -123,28 +123,40 @@ function App() {
     return allBombs.includes(index);
   }
 
-  function isBombInd(ind) {
-    return allBombs.includes(ind);
-  }
-
   function isOpenCells(ind) {
     return openCells.includes(ind.toString());
   }
 
 
-  //function checkNeighbor(row, column) {
-  //  for (let x = -1; x <= 1; x++) {
-  //    for (let y = -1; y <= 1; y++) {
-  //      const r = row + x;
-  //      const c = column + y;
-  //      if (!(x === 0 && y === 0) && r >= 0 && r < WIDTH && c >= 0 && c < HEIGHT) {
-  //        if (!isBomb(r, c) && !isOpenCells(r, c)) {
-  //          open(r, c);
-  //        }
-  //      }
-  //    }
-  //  }
-  //}
+  function checkNeighbor(row, column, e) {
+    const visited = new Set();
+    const queue = [{ row, column }];
+    while (queue.length > 0) {
+      const { row, column } = queue.shift();
+      const id = row * WIDTH + column;
+      if (visited.has(id)) continue;
+      visited.add(id);
+      if (!isOpenCells(row, column) && !isBomb(row, column)) {
+        setOpenCells((openCells) => [...openCells, id]);
+        arrItem[id] = backPos[0];
+        if (getCountMine(row, column, 0) === 0) {
+          for (let x = -1; x <= 1; x++) {
+            for (let y = -1; y <= 1; y++) {
+              const r = row + x;
+              const c = column + y;
+              if (r >= 0 && r < WIDTH && c >= 0 && c < HEIGHT) {
+                const neighborId = r * WIDTH + c;
+                if (!visited.has(neighborId)) {
+                  queue.push({ row: r, column: c });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   function timerStart() {
     setTimer({ secondOne: 0, secondTwo: -225, secondThree: -225 })
@@ -160,13 +172,16 @@ function App() {
   };
 
   function timerStop() {
-    setTimer({ secondOne: -225, secondTwo: -225, secondThree: -225 });
   }
 
-  function setSmile() {
+  function setSmile(e) {
     setClick(!click)
+    if(!click) {
+      arrItem[e.target.id] = '-29px 49px'
+    } 
   }
 
+ 
   return (
     <div className="App">
       <section className="game">
@@ -211,29 +226,37 @@ function App() {
             </span>
           </div>
         </header>
-        <div className="game-body" onClick={clickField}>
+        <div className="game-body" 
+          onClick={clickField} >
           {startArr.map((el, ind) =>
             <button
               className="game-btn"
               style={{
-                backgroundImage: 'url(minesweeper-sprites_9TPZzv3.png)',
-                //backgroundPosition: !start ? backPos[0] : !explosion ? backPos[10] : selectedButtonId === ind ? backPos[0] : !isBombInd(ind) ? backPos[0] : backPos[9]
                 backgroundPosition: arrItem[ind]
-                //    !start ? backPos[0] :
-                //explosion ? (!isBombInd(ind) ? backPos[0] : backPos[9]) :
-                //  isOpenCells(ind) && !isBombInd(ind) ? buttonStates[ind] || backPos[countMine] :
-                //    (explosion && isBombInd(ind)) ? backPos[9] :
-                //      (explosion && isOpenCells(ind)) ? buttonStates[ind] :
-                //        backPos[10]
               }}
               key={ind}
               id={ind}
               onMouseDown={setSmile}
-              onMouseUp={setSmile}>
+              onMouseUp={setSmile}
+              disabled={!start ? true : false }>
             </button>
           )}
         </div>
+        <ul>
+          <li className='comlete'>поле 16x16 клеток,&nbsp;40 мин;</li>
+          <li>слева счетчик мин от 40 до нуля, справа секундомер</li>
+          <li className='comlete'>мины расставляются случайно;</li>
+          <li>первый клик никогда не должен быть по мине;</li>
+          <li className='fifty'>если рядом с открытым полем есть другие поля без мин поблизости, они открываются автоматически;</li>
+          <li>правая клавиша ставит флажок - так отмечается место, где предполагается мина;</li>
+          <li>если кликнуть правой кнопкой по флажку, ставится вопрос, еще раз - выделение снимается;</li>
+          <li>клик по смайлику перезапускает игру;</li>
+          <li className='comlete'>испуганный смайлик - пользователь нажал на поле, но еще не отпустил кнопку мышки;</li>
+          <li className='comlete'>после проигрыша смайлик заменяется на грустный, пользователю раскрывается карта мин;</li>
+          <li className='comlete'>после того, как пользователь открыл все поля кроме мин, смайлик надевает солнечные очки, секундомер останавливается.</li>
+        </ul>
       </section >
+      
     </div >
   );
 
