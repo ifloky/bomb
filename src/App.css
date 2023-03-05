@@ -81,13 +81,28 @@ button:hover {
 }
 
 .game-btn {
-  border-width: 2px;
-  border-style: outset;
-  border-color: #ededed;
+  border-width: 1px;
+  border-style:solid;
+  border-color: #585858;
   background-color: #BDBDBD;
+  background-image: url(../public/minesweeper-sprites_9TPZzv3.png);
   background-size: 210px;
 }
 
 .game-btn:disabled {
-  border: 1px solid #d4d4d4;
+  border: 1px solid #585858;
+}
+
+ul {
+  color: rgb(219, 58, 58);
+  padding-left: 20px;
+  background-color: #585858;
+}
+
+.comlete {
+  color: rgb(15, 207, 15);
+}
+
+.fifty {
+  color: orange;
 }
