@@ -8,7 +8,7 @@ function App() {
   const HEIGHT = 16;
 
   const cellsCount = WIDTH * HEIGHT;
-  const startArr = [...Array(cellsCount).fill('0px 50px')]
+  const startArr = [...Array(cellsCount).fill('-1px 49px')]
 
   const [arrItem, changeArrItem] = useState(startArr);
 
@@ -71,7 +71,7 @@ function App() {
       countMine = getCountMine(row, column, countMine);
 
       setOpenCells([...openCells, e.target.id]);
-      
+
       arrItem[e.target.id] = backPos[countMine]
 
       e.target.disabled = true;
@@ -128,7 +128,7 @@ function App() {
   }
 
 
-  function checkNeighbor(row, column, e) {
+  function checkNeighbor(row, column, e, countMine) {
     const visited = new Set();
     const queue = [{ row, column }];
     while (queue.length > 0) {
@@ -138,7 +138,11 @@ function App() {
       visited.add(id);
       if (!isOpenCells(row, column) && !isBomb(row, column)) {
         setOpenCells((openCells) => [...openCells, id]);
-        arrItem[id] = backPos[0];
+        countMine = getCountMine(row, column, countMine);
+        setOpenCells([...openCells, e.target.id]);
+        arrItem[e.target.id] = backPos[countMine]
+        e.target.disabled = true;
+        arrItem[id] = backPos[countMine]
         if (getCountMine(row, column, 0) === 0) {
           for (let x = -1; x <= 1; x++) {
             for (let y = -1; y <= 1; y++) {
@@ -176,12 +180,12 @@ function App() {
 
   function setSmile(e) {
     setClick(!click)
-    if(!click) {
+    if (!click) {
       arrItem[e.target.id] = '-29px 49px'
-    } 
+    }
   }
 
- 
+
   return (
     <div className="App">
       <section className="game">
@@ -226,7 +230,7 @@ function App() {
             </span>
           </div>
         </header>
-        <div className="game-body" 
+        <div className="game-body"
           onClick={clickField} >
           {startArr.map((el, ind) =>
             <button
@@ -238,26 +242,13 @@ function App() {
               id={ind}
               onMouseDown={setSmile}
               onMouseUp={setSmile}
-              disabled={!start ? true : false }>
+              disabled={!start ? true : false}>
             </button>
           )}
         </div>
-        <ul>
-          <li className='comlete'>поле 16x16 клеток,&nbsp;40 мин;</li>
-          <li>слева счетчик мин от 40 до нуля, справа секундомер</li>
-          <li className='comlete'>мины расставляются случайно;</li>
-          <li>первый клик никогда не должен быть по мине;</li>
-          <li className='fifty'>если рядом с открытым полем есть другие поля без мин поблизости, они открываются автоматически;</li>
-          <li>правая клавиша ставит флажок - так отмечается место, где предполагается мина;</li>
-          <li>если кликнуть правой кнопкой по флажку, ставится вопрос, еще раз - выделение снимается;</li>
-          <li>клик по смайлику перезапускает игру;</li>
-          <li className='comlete'>испуганный смайлик - пользователь нажал на поле, но еще не отпустил кнопку мышки;</li>
-          <li className='comlete'>после проигрыша смайлик заменяется на грустный, пользователю раскрывается карта мин;</li>
-          <li className='comlete'>после того, как пользователь открыл все поля кроме мин, смайлик надевает солнечные очки, секундомер останавливается.</li>
-        </ul>
-      </section >
-      
-    </div >
+      </section>
+
+    </div>
   );
 
 };
