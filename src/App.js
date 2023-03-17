@@ -33,9 +33,11 @@ function App() {
     7: '-156px 23px',
     8: '-182px 23px',
     9: '80px 48px',
-    10: '-2px 49px'
+    10: '-2px 49px',
+    11: '-52px 49px',
+    12: '-78px 49px',
+    13: '-106px 47px'
   };
-
 
   function startGame() {
     setStart(true);
@@ -61,7 +63,6 @@ function App() {
       const column = index % WIDTH;
       const row = Math.floor(index / WIDTH);
       open(row, column, e, countMine, countMineRem);
-      //checkNeighbor(row, column, e)
     }
   }
 
@@ -69,14 +70,9 @@ function App() {
     if (!isBomb(row, column)) {
 
       countMine = getCountMine(row, column, countMine);
-
       setOpenCells([...openCells, e.target.id]);
-
       arrItem[e.target.id] = backPos[countMine]
-
       e.target.disabled = true;
-
-
       if (countMine === 0) {
         checkNeighbor(row, column, e);
       }
@@ -161,7 +157,6 @@ function App() {
     }
   }
 
-
   function timerStart() {
     setTimer({ secondOne: 0, secondTwo: -225, secondThree: -225 })
     setInterval(() => {
@@ -184,6 +179,15 @@ function App() {
       arrItem[e.target.id] = '-29px 49px'
     }
   }
+
+  function leftHand(e) {
+    e.preventDefault();
+    if (e.button == 2) {
+      arrItem[e.target.id] = backPos[11]
+      e.target.disabled = true;
+    }
+  }
+
 
 
   return (
@@ -240,6 +244,7 @@ function App() {
               }}
               key={ind}
               id={ind}
+              onContextMenu={leftHand}
               onMouseDown={setSmile}
               onMouseUp={setSmile}
               disabled={!start ? true : false}>
